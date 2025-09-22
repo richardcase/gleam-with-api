@@ -44,13 +44,31 @@ test/
 - Error propagation and handling
 - Functional API design
 
+### ✅ **Distributed Supervisor with Horde-like Functionality** 
+- **Consistent Hashing**: Distributes customer actors across cluster nodes using hash rings
+- **Node Discovery**: Automatic detection and monitoring of cluster members
+- **Fault Tolerance**: Automatic failover and actor migration when nodes fail
+- **Load Balancing**: Even distribution of customer actors across available nodes
+- **Cluster Monitoring**: Real-time visibility into cluster status and actor distribution
+
+### ✅ **OTP Actor System**
+- Proper OTP actors for customer management with `gleam_otp`
+- Supervisor trees with fault tolerance and restart strategies
+- Actor lifecycle management with proper supervision
+- Message passing between distributed components
+
+### ✅ **Configuration Management**
+- Environment-based configuration for distributed operation
+- Support for both legacy and distributed modes
+- Flexible cluster configuration (nodes, hash ring size, discovery intervals)
+
 ### 🔄 **Planned Enhancements (Full Production Version)**
 
 To make this a complete production application, add:
 
-1. **Real OTP Actors**:
+1. **Real OTP Actors**: ✅ **COMPLETED**
    ```gleam
-   // Add dependency: gleam_otp = ">= 0.10.0 and < 1.0.0"
+   // Added dependency: gleam_otp = ">= 0.10.0 and < 1.0.0"
    import gleam/otp/actor
    import gleam/otp/supervisor
    ```
@@ -103,18 +121,47 @@ curl -X POST -H "Content-Type: application/json" \
 
 ## 🏃‍♂️ **Running the Demo**
 
+### Legacy Mode (Default)
 ```bash
 # Install Gleam (if not already installed)
 curl -sSL https://github.com/gleam-lang/gleam/releases/download/v1.5.1/gleam-v1.5.1-x86_64-unknown-linux-musl.tar.gz -o gleam.tar.gz
 tar -xzf gleam.tar.gz
 sudo mv gleam /usr/local/bin/
 
-# Run the demonstration
+# Run the legacy demonstration
 gleam run
 
 # Run tests
 gleam test
 ```
+
+### Distributed Mode (New!)
+```bash
+# Run with distributed supervisor (Horde-like functionality)
+export DISTRIBUTED_MODE=true
+gleam run
+
+# Configure cluster nodes (optional)
+export CLUSTER_NODES="node1@localhost,node2@localhost,node3@localhost"
+export HASH_RING_SIZE=512
+export NODE_DISCOVERY_INTERVAL=3000
+gleam run
+
+# Run distributed tests
+gleam test -- --module distributed_supervisor_test
+```
+
+### Configuration Options
+
+Environment variables for distributed operation:
+- `DISTRIBUTED_MODE`: Set to "true" or "1" to enable distributed mode
+- `CLUSTER_NODES`: Comma-separated list of cluster node names
+- `HASH_RING_SIZE`: Size of the consistent hash ring (default: 256)
+- `NODE_DISCOVERY_INTERVAL`: Node discovery interval in milliseconds (default: 5000)
+- `DATABASE_URL`: Database connection string (default: "./customers.db") 
+- `PORT`: Application port (default: 8080)
+- `LOG_LEVEL`: Logging level (default: "info")
+- `MAX_CONNECTIONS`: Maximum database connections (default: 100)
 
 ## 🎯 **Demo Output**
 

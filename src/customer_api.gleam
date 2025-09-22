@@ -5,30 +5,52 @@ import gleam/int
 import customer
 import customer_actor
 import database
+import config
+import app_supervisor
+import distributed_customer_api
 
 pub fn main() {
   io.println("🚀 Customer API - Gleam OTP Application")
   io.println("=====================================")
   io.println("")
   
-  // Initialize the customer service
-  case customer_actor.init() {
-    Ok(service) -> {
-      io.println("✅ Customer service initialized")
-      io.println("✅ In-memory database ready")
+  // Load configuration
+  let app_config = config.load_config()
+  
+  case app_config.distributed_mode {
+    True -> {
+      io.println("🌐 Starting in DISTRIBUTED mode with Horde-like supervisor")
+      io.println("=========================================================")
       io.println("")
       
-      // Demonstrate CRUD operations
-      demo_crud_operations(service)
+      // Use the distributed customer API
+      distributed_customer_api.main()
     }
-    Error(error) -> {
-      io.println("❌ Failed to initialize customer service:")
-      io.debug(error)
+    False -> {
+      io.println("🏠 Starting in LEGACY mode")
+      io.println("==========================")
+      io.println("")
+      
+      // Initialize the customer service
+      case customer_actor.init() {
+        Ok(service) -> {
+          io.println("✅ Customer service initialized")
+          io.println("✅ In-memory database ready")
+          io.println("")
+          
+          // Demonstrate CRUD operations
+          demo_crud_operations(service)
+        }
+        Error(error) -> {
+          io.println("❌ Failed to initialize customer service:")
+          io.debug(error)
+        }
+      }
     }
   }
 }
 
-fn demo_crud_operations(service: customer_actor.CustomerService) {
+fn demo_crud_operations(service: customer_actor.LegacyCustomerService) {
   io.println("📊 Demonstrating CRUD Operations")
   io.println("---------------------------------")
   
@@ -71,7 +93,7 @@ fn demo_crud_operations(service: customer_actor.CustomerService) {
   }
 }
 
-fn continue_demo(service: customer_actor.CustomerService, customer1: customer.Customer, customer2: customer.Customer, customer3: customer.Customer) {
+fn continue_demo(service: customer_actor.LegacyCustomerService, customer1: customer.Customer, customer2: customer.Customer, customer3: customer.Customer) {
   io.println("")
   io.println("📋 Listing all customers...")
   case customer_actor.list_customers(service) {
@@ -123,7 +145,7 @@ fn continue_demo(service: customer_actor.CustomerService, customer1: customer.Cu
   }
 }
 
-fn final_demo(service: customer_actor.CustomerService, customer3: customer.Customer) {
+fn final_demo(service: customer_actor.LegacyCustomerService, customer3: customer.Customer) {
   io.println("")
   io.println("🗑️  Deleting customer...")
   case customer3.id {
@@ -163,10 +185,15 @@ fn final_demo(service: customer_actor.CustomerService, customer3: customer.Custo
   io.println("  • Error handling and validation")
   io.println("")
   io.println("To add full OTP actors and REST API:")
-  io.println("  • Add gleam_otp dependency for proper actors")
+  io.println("  • Add gleam_otp dependency for proper actors ✅")
   io.println("  • Add wisp/mist for web framework")
   io.println("  • Add sqlight for SQLite persistence")
   io.println("  • Add gleam_json for JSON serialization")
+  io.println("  • Add distributed supervisor with Horde-like functionality ✅")
+  io.println("")
+  io.println("🌐 To run in distributed mode:")
+  io.println("  export DISTRIBUTED_MODE=true")
+  io.println("  gleam run")
 }
 
 fn list_customers_helper(customers: List(customer.Customer)) {
