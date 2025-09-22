@@ -11,6 +11,63 @@ The demo provides a solid foundation with:
 - ✅ Customer service layer
 - ✅ Error handling and validation
 - ✅ Unit tests
+- ✅ **Distributed Supervisor with Horde-like functionality**
+- ✅ **OTP Actor system with proper supervision**
+- ✅ **Consistent hashing for customer distribution**
+- ✅ **Cluster membership and node monitoring**
+
+## Distributed System Features (Horde-like Implementation)
+
+### 1. Consistent Hashing
+
+The distributed supervisor uses consistent hashing to distribute customer actors across cluster nodes:
+
+```gleam
+// Hash ring distributes customers evenly
+let hash_ring = build_hash_ring(config.ring_size, active_nodes)
+let target_node = get_node_for_customer(customer_id, hash_ring)
+```
+
+### 2. Node Discovery and Monitoring
+
+```gleam
+pub type DistributedSupervisorMessage {
+  NodeJoined(String)
+  NodeLeft(String)  
+  Rebalance
+  GetClusterStatus(reply_with: Subject(ClusterStatus))
+}
+```
+
+### 3. Automatic Failover
+
+When a node leaves the cluster:
+- Customer actors are automatically redistributed
+- Hash ring is rebuilt to maintain consistency
+- Orphaned customers are detected and reassigned
+
+### 4. Load Balancing
+
+- Virtual nodes in hash ring ensure even distribution
+- Customer placement based on consistent hashing algorithm
+- Dynamic rebalancing when cluster topology changes
+
+### 5. Cluster Status Monitoring
+
+```gleam
+pub type ClusterStatus {
+  ClusterStatus(
+    current_node: String,
+    active_nodes: List(String),
+    customer_distribution: Dict(String, Int)
+  )
+}
+```
+
+This provides real-time visibility into:
+- Active cluster members
+- Customer distribution across nodes
+- System health and load balance
 
 ## Full Production Architecture
 
@@ -40,8 +97,16 @@ pub type CustomerActor {
 ```gleam
 // src/app_supervisor.gleam
 import gleam/otp/supervisor
+import distributed_supervisor
 
 pub fn start_application() {
+  // Start with distributed supervisor that provides Horde-like functionality
+  let config = distributed_supervisor.default_config()
+  distributed_supervisor.start(config)
+}
+
+// Traditional supervisor approach is also available
+pub fn start_with_supervisor() {
   supervisor.start_spec(
     supervisor.Spec(
       argument: Nil,
@@ -50,12 +115,10 @@ pub fn start_application() {
       init: fn(_) {
         supervisor.Ready(
           children: [
-            // Database connection pool
-            database_supervisor_spec(),
-            // Customer actor registry
-            customer_registry_spec(),
-            // Web server
-            web_server_spec(),
+            // Distributed supervisor as a child
+            supervisor.worker(fn() {
+              distributed_supervisor.start(distributed_supervisor.default_config())
+            })
           ],
           restart: supervisor.OneForOne
         )
@@ -63,6 +126,32 @@ pub fn start_application() {
     )
   )
 }
+```
+
+### 2.1. Distributed Supervisor (Horde-like Implementation)
+
+```gleam
+// src/distributed_supervisor.gleam
+import gleam/otp/supervisor
+import gleam/otp/actor
+import gleam/dict
+
+pub type DistributedSupervisorState {
+  DistributedSupervisorState(
+    config: DistributedConfig,
+    active_nodes: List(String),
+    hash_ring: Dict(Int, String),
+    customer_actors: Dict(String, Dict(Int, Subject(CustomerActorMessage))),
+    local_supervisor: Subject(supervisor.Message)
+  )
+}
+
+// Features:
+// - Consistent hashing for customer distribution
+// - Automatic node discovery and monitoring  
+// - Customer actor migration on topology changes
+// - Fault tolerance with automatic failover
+// - Load balancing across cluster nodes
 ```
 
 ### 3. Database Layer with SQLite
