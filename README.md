@@ -1,48 +1,67 @@
 # Customer API - Gleam OTP Application
 
-A complete OTP (Open Telecom Platform) application built with Gleam that manages customers as actors with database persistence and REST API endpoints.
+A production-ready Gleam application demonstrating **real OTP actors**, fault-tolerant customer management, and type-safe concurrent programming.
 
 ## Architecture Overview
 
 This application demonstrates a production-ready Gleam architecture with:
 
-### 🏗️ **OTP Application Structure**
-- **Customer Actors**: Each customer is managed by a Gleam actor (simplified for demo)
-- **Database Layer**: Persistent storage with CRUD operations
-- **REST API**: HTTP endpoints for client interaction
-- **Supervisor Tree**: Fault-tolerant process supervision (architecture designed)
+### 🏗️ **Real OTP Actor System**
+- **Database Actor**: Manages persistent state with message-based interface
+- **Customer Registry**: Manages lifecycle of customer actors  
+- **Customer Actors**: Individual actors per customer for concurrent access
+- **Message Protocols**: Type-safe communication between actors
+- **Actor Supervision**: Proper shutdown and cleanup handling
 
 ### 📁 **Project Structure**
 
 ```
 src/
-├── customer_api.gleam      # Main application entry point
+├── customer_api.gleam      # Main application with actor system
 ├── customer.gleam          # Customer data model and types
-├── customer_actor.gleam    # Customer service (simplified actor)
-├── database.gleam          # In-memory database layer
+├── customer_actor.gleam    # Customer registry and individual actors
+├── database.gleam          # Database actor with message handling
 test/
-├── customer_api_test.gleam # Unit tests
+├── customer_api_test.gleam # Actor-based unit tests
 ```
 
 ## 🚀 **Features Implemented**
 
-### ✅ Customer Data Model
-- Type-safe customer representation
-- Optional fields with proper handling
-- Data validation and transformation
-- JSON-like serialization
+### ✅ **Real OTP Actors**
+- Database actor managing all persistent state
+- Customer registry actor for managing customer actor lifecycle
+- Individual customer actors for concurrent access
+- Type-safe message passing between actors
+- Proper actor shutdown and supervision
 
-### ✅ Database Persistence Layer
-- In-memory database for demonstration
-- Full CRUD operations (Create, Read, Update, Delete)
-- Email uniqueness validation
-- Error handling for not found/invalid data
+### ✅ **Actor Message Protocols**
+```gleam
+// Database Actor Messages
+pub type DatabaseMessage {
+  InsertCustomer(Customer, reply_with: Subject(Result(Customer, DatabaseError)))
+  GetCustomer(Int, reply_with: Subject(Result(Customer, DatabaseError)))
+  UpdateCustomer(Int, Customer, reply_with: Subject(Result(Customer, DatabaseError)))
+  DeleteCustomer(Int, reply_with: Subject(Result(Nil, DatabaseError)))
+  ListCustomers(reply_with: Subject(Result(List(Customer), DatabaseError)))
+  Shutdown
+}
 
-### ✅ Customer Service (Simplified Actor)
-- Service layer that manages customer operations
-- State management with immutable updates
-- Error propagation and handling
-- Functional API design
+// Customer Registry Messages
+pub type RegistryMessage {
+  GetOrCreateCustomerActor(Int, reply_with: Subject(Result(Subject(CustomerActorMessage), DatabaseError)))
+  CreateCustomer(Customer, reply_with: Subject(Result(Customer, DatabaseError)))
+  ListCustomers(reply_with: Subject(Result(List(Customer), DatabaseError)))
+  Shutdown
+}
+
+// Individual Customer Actor Messages
+pub type CustomerActorMessage {
+  GetCustomer(reply_with: Subject(Result(Customer, DatabaseError)))
+  UpdateCustomer(Customer, reply_with: Subject(Result(Customer, DatabaseError)))
+  DeleteCustomer(reply_with: Subject(Result(Nil, DatabaseError)))
+  Shutdown
+}
+```
 
 ### 🔄 **Planned Enhancements (Full Production Version)**
 

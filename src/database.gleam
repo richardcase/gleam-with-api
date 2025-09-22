@@ -4,7 +4,103 @@ import gleam/list
 import gleam/int
 import gleam/dict.{type Dict}
 import gleam/order
+import gleam/otp/actor
 import customer.{type Customer}
+
+/// Database state type using in-memory storage
+pub type Database {
+  Database(customers: Dict(Int, Customer), next_id: Int)
+}
+
+/// Database errors
+pub type DatabaseError {
+  NotFound
+  InvalidData
+  EmailExists
+  ActorError
+}
+
+/// Database actor messages
+pub type DatabaseMessage {
+  InsertCustomer(Customer, reply_with: actor.Subject(Result(Customer, DatabaseError)))
+  GetCustomer(Int, reply_with: actor.Subject(Result(Customer, DatabaseError)))
+  UpdateCustomer(Int, Customer, reply_with: actor.Subject(Result(Customer, DatabaseError)))
+  DeleteCustomer(Int, reply_with: actor.Subject(Result(Nil, DatabaseError)))
+  ListCustomers(reply_with: actor.Subject(Result(List(Customer), DatabaseError)))
+  Shutdown
+}
+
+/// Start a database actor
+pub fn start_database_actor() -> Result(actor.Subject(DatabaseMessage), actor.StartError) {
+  let init_db = Database(customers: dict.new(), next_id: 1)
+  actor.start(init_db, handle_database_message)
+}
+
+/// Handle database actor messages
+fn handle_database_message(
+  message: DatabaseMessage,
+  state: Database,
+) -> actor.Next(DatabaseMessage, Database) {
+  case message {
+    InsertCustomer(customer, reply_with) -> {
+      let result = insert_customer(state, customer)
+      case result {
+        Ok(#(new_customer, new_state)) -> {
+          actor.send(reply_with, Ok(new_customer))
+          actor.continue(new_state)
+        }
+        Error(error) -> {
+          actor.send(reply_with, Error(error))
+          actor.continue(state)
+        }
+      }
+    }
+    
+    GetCustomer(id, reply_with) -> {
+      let result = get_customer(state, id)
+      actor.send(reply_with, result)
+      actor.continue(state)
+    }
+    
+    UpdateCustomer(id, customer, reply_with) -> {
+      let result = update_customer(state, id, customer)
+      case result {
+        Ok(#(updated_customer, new_state)) -> {
+          actor.send(reply_with, Ok(updated_customer))
+          actor.continue(new_state)
+        }
+        Error(error) -> {
+          actor.send(reply_with, Error(error))
+          actor.continue(state)
+        }
+      }
+    }
+    
+    DeleteCustomer(id, reply_with) -> {
+      let result = delete_customer(state, id)
+      case result {
+        Ok(new_state) -> {
+          actor.send(reply_with, Ok(Nil))
+          actor.continue(new_state)
+        }
+        Error(error) -> {
+          actor.send(reply_with, Error(error))
+          actor.continue(state)
+        }
+      }
+    }
+    
+    ListCustomers(reply_with) -> {
+      let result = list_customers(state)
+      actor.send(reply_with, result)
+      actor.continue(state)
+    }
+    
+    Shutdown -> {
+      actor.stop(actor.Normal)
+    }
+  }
+}
 
 /// Database state type using in-memory storage
 pub type Database {
