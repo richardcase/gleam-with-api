@@ -33,10 +33,11 @@ test/
 - JSON-like serialization
 
 ### ✅ Database Persistence Layer
-- In-memory database for demonstration
-- Full CRUD operations (Create, Read, Update, Delete)
-- Email uniqueness validation
-- Error handling for not found/invalid data
+- SQLite database with proper schema and migrations
+- Full CRUD operations with SQL queries
+- Email uniqueness validation with database constraints
+- Error handling for SQLite operations
+- Automatic timestamp tracking (created_at, updated_at)
 
 ### ✅ Customer Service (Simplified Actor)
 - Service layer that manages customer operations
@@ -64,9 +65,10 @@ To make this a complete production application, add:
    // gleam_json = ">= 1.0.0 and < 2.0.0"
    ```
 
-3. **SQLite Database**:
+3. ✅ **SQLite Database** (IMPLEMENTED):
    ```gleam
-   // Add dependency: sqlight = ">= 0.15.0 and < 1.0.0"
+   // Dependency added: sqlight = ">= 0.15.0 and < 1.0.0"
+   // See SQLITE_IMPLEMENTATION.md for details
    ```
 
 ## 📡 **API Endpoints Design**
@@ -152,7 +154,7 @@ Current customers:
 
 For a production deployment, this application would include:
 
-- **Database Persistence**: SQLite or PostgreSQL
+- **Database Persistence**: ✅ SQLite implemented (see SQLITE_IMPLEMENTATION.md)
 - **Actor Supervision**: Fault tolerance with OTP supervisors  
 - **HTTP Server**: Robust web server with proper error handling
 - **Authentication**: JWT or session-based auth
@@ -166,7 +168,7 @@ For a production deployment, this application would include:
 - **Language**: Gleam 1.5.1
 - **Runtime**: Erlang/OTP (BEAM VM)
 - **Architecture**: Actor Model + Functional Programming
-- **Database**: In-memory (demo) → SQLite/PostgreSQL (production)
+- **Database**: SQLite (implemented) → PostgreSQL (production scaling)
 - **Web Framework**: Wisp (planned)
 - **Testing**: Gleeunit
 

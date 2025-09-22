@@ -15,7 +15,7 @@ pub fn main() {
   case customer_actor.init() {
     Ok(service) -> {
       io.println("✅ Customer service initialized")
-      io.println("✅ In-memory database ready")
+      io.println("✅ SQLite database ready")
       io.println("")
       
       // Demonstrate CRUD operations
@@ -158,15 +158,15 @@ fn final_demo(service: customer_actor.CustomerService, customer3: customer.Custo
   io.println("")
   io.println("This demonstrates a Gleam OTP application with:")
   io.println("  • Customer data model with proper types")
-  io.println("  • In-memory database with CRUD operations")
+  io.println("  • SQLite database with CRUD operations")
   io.println("  • Customer service acting as a simplified actor")
   io.println("  • Error handling and validation")
   io.println("")
   io.println("To add full OTP actors and REST API:")
   io.println("  • Add gleam_otp dependency for proper actors")
   io.println("  • Add wisp/mist for web framework")
-  io.println("  • Add sqlight for SQLite persistence")
   io.println("  • Add gleam_json for JSON serialization")
+  io.println("  • See SQLITE_IMPLEMENTATION.md for database details")
 }
 
 fn list_customers_helper(customers: List(customer.Customer)) {
