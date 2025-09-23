@@ -115,6 +115,20 @@ fn demo_distributed_operations(dist_supervisor: actor.Subject(DistributedSupervi
   }
   
   io.println("")
+  io.println("🔄 Demonstrating Graceful Shutdown with Actor Migration...")
+  case distributed_supervisor.graceful_shutdown(dist_supervisor, "node@localhost") {
+    Ok(_) -> {
+      io.println("✅ Graceful shutdown completed successfully!")
+      io.println("  • All customer actors migrated to other nodes")
+      io.println("  • Zero downtime during shutdown process")
+      io.println("  • Actor state preserved across migration")
+    }
+    Error(reason) -> {
+      io.println("❌ Graceful shutdown failed: " <> reason)
+    }
+  }
+  
+  io.println("")
   io.println("🎉 Distributed operations completed!")
   io.println("")
   io.println("✨ Key Features Demonstrated:")
@@ -123,6 +137,8 @@ fn demo_distributed_operations(dist_supervisor: actor.Subject(DistributedSupervi
   io.println("  • Cluster status monitoring")
   io.println("  • Fault-tolerant actor management")
   io.println("  • OTP-compliant distributed system")
+  io.println("  • Graceful node shutdown with zero downtime ✨")
+  io.println("  • Automatic actor migration and state preservation ✨")
 }
 
 fn demo_legacy_operations() {

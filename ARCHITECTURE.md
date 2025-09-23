@@ -69,6 +69,42 @@ This provides real-time visibility into:
 - Customer distribution across nodes
 - System health and load balance
 
+### 6. Graceful Node Shutdown with Actor Migration
+
+The distributed supervisor supports graceful shutdown of nodes with automatic actor migration:
+
+```gleam
+// Gracefully shutdown a node, migrating all actors to other nodes
+pub fn graceful_shutdown(supervisor: Subject(DistributedSupervisorMessage), node_name: String) -> Result(Nil, String)
+
+// Message types for graceful operations
+pub type DistributedSupervisorMessage {
+  GracefulShutdown(String, reply_with: Subject(Result(Nil, String)))
+  MigrateActors(from_node: String, to_node: String, actor_ids: List(Int))
+  // ... other messages
+}
+
+// Customer actors support state extraction and restoration for migration
+pub type CustomerActorMessage {
+  ExtractState(reply_with: Subject(Result(Option(Customer), String)))
+  RestoreState(Option(Customer), reply_with: Subject(Result(Nil, String)))
+  // ... other messages
+}
+```
+
+**Graceful Shutdown Process:**
+1. **State Extraction**: Extract state from all customer actors on the shutting down node
+2. **Target Selection**: Identify healthy nodes to receive migrated actors
+3. **Actor Migration**: Create new actors on target nodes with restored state
+4. **Cleanup**: Stop actors on the shutting down node
+5. **Topology Update**: Remove the node from the cluster and update hash ring
+
+**Benefits:**
+- **Zero Downtime**: Customer actors remain available during node shutdown
+- **State Preservation**: Customer data is maintained across migrations
+- **Automatic Load Balancing**: Actors are redistributed according to consistent hashing
+- **Fault Tolerance**: System continues operating with reduced capacity
+
 ## Full Production Architecture
 
 ### 1. OTP Actor System

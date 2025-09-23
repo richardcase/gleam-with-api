@@ -50,12 +50,14 @@ test/
 - **Fault Tolerance**: Automatic failover and actor migration when nodes fail
 - **Load Balancing**: Even distribution of customer actors across available nodes
 - **Cluster Monitoring**: Real-time visibility into cluster status and actor distribution
+- **Graceful Shutdown**: Zero-downtime node shutdown with automatic actor migration ✨
 
 ### ✅ **OTP Actor System**
 - Proper OTP actors for customer management with `gleam_otp`
 - Supervisor trees with fault tolerance and restart strategies
 - Actor lifecycle management with proper supervision
 - Message passing between distributed components
+- State extraction and restoration for seamless actor migration ✨
 
 ### ✅ **Configuration Management**
 - Environment-based configuration for distributed operation
